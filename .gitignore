@@ -1,0 +1,13 @@
+# Mac OS
+.DS_Store
+
+# Intellij
+.idea/
+*.iml
+target/
+
+*.jar
+papers
+
+# Python
+*.pyc
