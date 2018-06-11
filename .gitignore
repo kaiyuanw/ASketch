@@ -11,3 +11,7 @@ papers
 
 # Python
 *.pyc
+
+# ASketch
+.hidden
+experiments/results
