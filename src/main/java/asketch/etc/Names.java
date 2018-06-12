@@ -6,14 +6,10 @@ public class Names {
 
   // Suffix
   public final static String DOT_ALS = ".als";
-  // Serialized file suffix
-  public final static String DOT_PKL = ".pkl";
 
   // Directory paths
   public final static String PROJECT_DIR_PATH = System.getProperty("user.dir");
   public final static String HIDDEN_DIR_PATH = Paths.get(PROJECT_DIR_PATH, ".hidden").toString();
-  public final static String EQUIV_DIR_PATH = Paths.get(HIDDEN_DIR_PATH, "equiv").toString();
-  public final static String EXPR_DIR_PATH = Paths.get(HIDDEN_DIR_PATH, "exprs").toString();
 
   // File paths
   public final static String CHECK_FILE_PATH = Paths.get(HIDDEN_DIR_PATH, "attempt" + DOT_ALS)

@@ -5,6 +5,8 @@ import static asketch.alloy.etc.Constants.ABSTRACT_CO;
 import static asketch.alloy.etc.Constants.ABSTRACT_LO;
 import static asketch.alloy.etc.Constants.ABSTRACT_Q;
 import static asketch.alloy.etc.Constants.ABSTRACT_UO;
+import static asketch.alloy.etc.Constants.ABSTRACT_UOE;
+import static asketch.alloy.etc.Constants.ABSTRACT_UOF;
 import static asketch.alloy.etc.Constants.ALL;
 import static asketch.alloy.etc.Constants.AND;
 import static asketch.alloy.etc.Constants.BO_FUN_NAME;
@@ -14,9 +16,11 @@ import static asketch.alloy.etc.Constants.IFF;
 import static asketch.alloy.etc.Constants.IMPLIES;
 import static asketch.alloy.etc.Constants.LONE;
 import static asketch.alloy.etc.Constants.LO_FUN_NAME;
+import static asketch.alloy.etc.Constants.NEGATE;
 import static asketch.alloy.etc.Constants.NO;
 import static asketch.alloy.etc.Constants.ONE;
 import static asketch.alloy.etc.Constants.OR;
+import static asketch.alloy.etc.Constants.ORIGIN;
 import static asketch.alloy.etc.Constants.Q_FUN_NAME;
 import static asketch.alloy.etc.Constants.RESULT_BO;
 import static asketch.alloy.etc.Constants.RESULT_CO;
@@ -24,8 +28,12 @@ import static asketch.alloy.etc.Constants.RESULT_E;
 import static asketch.alloy.etc.Constants.RESULT_LO;
 import static asketch.alloy.etc.Constants.RESULT_Q;
 import static asketch.alloy.etc.Constants.RESULT_UO;
+import static asketch.alloy.etc.Constants.RESULT_UOE;
+import static asketch.alloy.etc.Constants.RESULT_UOF;
 import static asketch.alloy.etc.Constants.SLASH;
 import static asketch.alloy.etc.Constants.SOME;
+import static asketch.alloy.etc.Constants.UOE_FUN_NAME;
+import static asketch.alloy.etc.Constants.UOF_FUN_NAME;
 import static asketch.alloy.etc.Constants.UO_FUN_NAME;
 import static asketch.alloy.util.AlloyUtil.cardOfRel;
 import static asketch.alloy.util.AlloyUtil.connectExprHolesWithSameVarName;
@@ -50,6 +58,8 @@ import asketch.alloy.fragment.Hole;
 import asketch.alloy.fragment.LO;
 import asketch.alloy.fragment.Q;
 import asketch.alloy.fragment.UO;
+import asketch.alloy.fragment.UOE;
+import asketch.alloy.fragment.UOF;
 import asketch.alloy.util.AlloyProgram;
 import edu.mit.csail.sdg.ast.Browsable;
 import edu.mit.csail.sdg.ast.ExprBinary;
@@ -121,6 +131,8 @@ public class AlloyASTVisitor {
               metaModel.append("one sig " + RESULT_UO + holdId + " in " + ABSTRACT_UO + " {}\n");
             } else if (hole instanceof BO) {
               metaModel.append("one sig " + RESULT_BO + holdId + " in " + ABSTRACT_BO + " {}\n");
+            } else if (hole instanceof UOE) {
+              metaModel.append("one sig " + RESULT_UOE + holdId + " in " + ABSTRACT_UOE + " {}\n");
             } else if (hole instanceof LO) {
               // Go one level deeper if the current node is a NOOP unary expression.
               if (node instanceof ExprUnary) {
@@ -144,6 +156,12 @@ public class AlloyASTVisitor {
                         connectedHoles, deque))));
               }
               metaModel.append("one sig " + RESULT_LO + holdId + " in " + ABSTRACT_LO + " {}\n");
+            } else if (hole instanceof UOF) { // !
+              ExprUnary exprUnary = (ExprUnary) node;
+              metaModel.append(generateUOFPredDecl(alloyProgram, holdId,
+                  constructHierarchy(exprUnary.sub, nodeToHoleMap, alloyProgram, sigsAndFields,
+                      connectedHoles, deque)));
+              metaModel.append("one sig " + RESULT_UOF + holdId + " in " + ABSTRACT_UOF + " {}\n");
             } else {
               // TODO(kaiyuan): Implement other types of holes
             }
@@ -428,8 +446,25 @@ public class AlloyASTVisitor {
         return card + " " + constructHierarchy(child, nodeToHoleMap, alloyProgram, sigsAndFields,
             connectedHoles, deque);
       }
-      if (stringIsOr(normalPart, "~", "*", "^", "!")) {
+      if (stringIsOr(normalPart, "~", "*", "^")) {
         Browsable operand = browsable.getSubnodes().get(0);
+        if (nodeToHoleMap.containsKey(browsable)) {
+          deque.offer(browsable);
+          return generateFunOrPredCall(UOE_FUN_NAME, RESULT_UOE, nodeToHoleMap.get(browsable),
+              connectedHoles,
+              constructHierarchy(operand, nodeToHoleMap, alloyProgram, sigsAndFields,
+                  connectedHoles, deque));
+        }
+        return "(" + normalPart + constructHierarchy(operand, nodeToHoleMap, alloyProgram,
+            sigsAndFields, connectedHoles, deque) + ")";
+      }
+      if (stringIsOr(normalPart, "!")) {
+        Browsable operand = browsable.getSubnodes().get(0);
+        if (nodeToHoleMap.containsKey(browsable)) {
+          deque.offer(browsable);
+          return generateFunOrPredCall(UOF_FUN_NAME, RESULT_UOF, nodeToHoleMap.get(browsable),
+              connectedHoles, alloyProgram);
+        }
         return "(" + normalPart + constructHierarchy(operand, nodeToHoleMap, alloyProgram,
             sigsAndFields, connectedHoles, deque) + ")";
       }
@@ -593,14 +628,16 @@ public class AlloyASTVisitor {
     StringBuilder call = new StringBuilder();
     if (connectedHoles[holeId] == -1) { // Deprecated.
       // Quantifier predicate may not share the same name.
-      if (funOrPredName.equals(Q_FUN_NAME) || funOrPredName.equals(LO_FUN_NAME)) {
+      if (funOrPredName.equals(Q_FUN_NAME) || funOrPredName.equals(LO_FUN_NAME)
+          || funOrPredName.equals(UOF_FUN_NAME)) {
         call.append(funOrPredName).append(holeId);
       } else {
         call.append(funOrPredName);
       }
     } else {
       // Create unique function name.
-      if (funOrPredName.equals(Q_FUN_NAME) || funOrPredName.equals(LO_FUN_NAME)) {
+      if (funOrPredName.equals(Q_FUN_NAME) || funOrPredName.equals(LO_FUN_NAME)
+          || funOrPredName.equals(UOF_FUN_NAME)) {
         call.append(funOrPredName).append(holeId);
       } else {
         call.append(funOrPredName).append(connectedHoles[holeId]);
@@ -622,7 +659,7 @@ public class AlloyASTVisitor {
       // replace all sigs with new names.
     }
     call.append("]");
-    return call.toString();
+    return "(" + call.toString() + ")";
   }
 
   private static String generateFunOrPredCall(String funOrPredName, String firstArgName, int holeId,
@@ -636,7 +673,7 @@ public class AlloyASTVisitor {
         .append(firstArgName).append(holeId).append(", ")
         .append(leftOperand).append(", ")
         .append(rightOperand).append("]");
-    return call.toString();
+    return "(" + call.toString() + ")";
   }
 
   private static String generateFunOrPredCall(String funOrPredName, String firstArgName, int holeId,
@@ -649,7 +686,7 @@ public class AlloyASTVisitor {
     call.append("[")
         .append(firstArgName).append(holeId).append(", ")
         .append(operand).append("]");
-    return call.toString();
+    return "(" + call.toString() + ")";
   }
 
   private static String generateQPredDecl(AlloyProgram alloyProgram, int holeId, String common) {
@@ -691,16 +728,37 @@ public class AlloyASTVisitor {
     Set<String> cands = loHole.getCands()
         .stream().map(Candidate::getValue).collect(Collectors.toSet());
     if (cands.contains(AND)) {
-      predDecl.append("  h = " + ABSTRACT_LO + "_And => " + String.join(" " + AND + " ", commons) + "\n");
+      predDecl.append(
+          "  h = " + ABSTRACT_LO + "_And => " + String.join(" " + AND + " ", commons) + "\n");
     }
     if (cands.contains(OR)) {
-      predDecl.append("  h = " + ABSTRACT_LO + "_Or => " + String.join(" " + OR + " ", commons) + "\n");
+      predDecl
+          .append("  h = " + ABSTRACT_LO + "_Or => " + String.join(" " + OR + " ", commons) + "\n");
     }
     if (cands.contains(IMPLIES)) {
-      predDecl.append("  h = " + ABSTRACT_LO + "_Imply => " + String.join(" " + IMPLIES + " ", commons) + "\n");
+      predDecl.append(
+          "  h = " + ABSTRACT_LO + "_Imply => " + String.join(" " + IMPLIES + " ", commons) + "\n");
     }
     if (cands.contains(IFF)) {
-      predDecl.append("  h = " + ABSTRACT_LO + "_BiImply => " + String.join(" " + IFF + " ", commons) + "\n");
+      predDecl.append(
+          "  h = " + ABSTRACT_LO + "_BiImply => " + String.join(" " + IFF + " ", commons) + "\n");
+    }
+    predDecl.append("}\n");
+    return predDecl.toString();
+  }
+
+  private static String generateUOFPredDecl(AlloyProgram alloyProgram, int holeId, String common) {
+    StringBuilder predDecl = new StringBuilder();
+    Hole qHole = alloyProgram.getHoles().get(holeId);
+    predDecl.append("pred " + UOF_FUN_NAME + holeId + "(h: " + ABSTRACT_UOF + ", "
+        + generateParameterDeclFromRelations(qHole.getPrimaryRelations()) + ") {\n");
+    Set<String> cands = qHole.getCands()
+        .stream().map(Candidate::getValue).collect(Collectors.toSet());
+    if (cands.contains(ORIGIN)) {
+      predDecl.append("  h = " + ABSTRACT_UOF + "_Origin => " + ORIGIN + common + "\n");
+    }
+    if (cands.contains(NEGATE)) {
+      predDecl.append("  h = " + ABSTRACT_UOF + "_Negate => " + NEGATE + common + "\n");
     }
     predDecl.append("}\n");
     return predDecl.toString();

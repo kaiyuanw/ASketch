@@ -7,6 +7,8 @@ import static asketch.alloy.etc.Constants.ABSTRACT_E;
 import static asketch.alloy.etc.Constants.ABSTRACT_LO;
 import static asketch.alloy.etc.Constants.ABSTRACT_Q;
 import static asketch.alloy.etc.Constants.ABSTRACT_UO;
+import static asketch.alloy.etc.Constants.ABSTRACT_UOE;
+import static asketch.alloy.etc.Constants.ABSTRACT_UOF;
 import static asketch.alloy.etc.Constants.BO_FUN_NAME;
 import static asketch.alloy.etc.Constants.CO_FUN_NAME;
 import static asketch.alloy.etc.Constants.CROSS_PRODUCT;
@@ -21,12 +23,16 @@ import static asketch.alloy.etc.Constants.NO;
 import static asketch.alloy.etc.Constants.NONE;
 import static asketch.alloy.etc.Constants.NOT_IN;
 import static asketch.alloy.etc.Constants.ONE;
+import static asketch.alloy.etc.Constants.REFLEXIVE_TRANSITIVE_CLOSURE;
 import static asketch.alloy.etc.Constants.RESULT_E;
 import static asketch.alloy.etc.Constants.SKETCH_COMMAND_NAME;
 import static asketch.alloy.etc.Constants.SLASH;
 import static asketch.alloy.etc.Constants.SOME;
+import static asketch.alloy.etc.Constants.TRANSITIVE_CLOSURE;
+import static asketch.alloy.etc.Constants.TRANSPOSE;
 import static asketch.alloy.etc.Constants.UNION;
 import static asketch.alloy.etc.Constants.UNIV;
+import static asketch.alloy.etc.Constants.UOE_FUN_NAME;
 import static asketch.alloy.etc.Constants.UO_FUN_NAME;
 import static asketch.alloy.util.AlloyUtil.cardOfSig;
 import static asketch.alloy.util.AlloyUtil.compileAlloyModule;
@@ -59,6 +65,8 @@ import asketch.alloy.fragment.Hole;
 import asketch.alloy.fragment.LO;
 import asketch.alloy.fragment.Q;
 import asketch.alloy.fragment.UO;
+import asketch.alloy.fragment.UOE;
+import asketch.alloy.fragment.UOF;
 import asketch.alloy.util.AlloyProgram;
 import asketch.alloy.util.TestTranslator;
 import asketch.opts.ASketchOpt;
@@ -376,6 +384,37 @@ public class ASketch {
           operatorSigsAndFunDecl.append("  h = " + minus + " => e1 " + DIFF + " e2 else none\n");
         }
         operatorSigsAndFunDecl.append("}\n\n");
+      } else if (hole instanceof UOE) {
+        String tilde = ABSTRACT_UOE + "_Transpose";
+        String star = ABSTRACT_UOE + "_Reflexive_Closure";
+        String caret = ABSTRACT_UOE + "_Closure";
+        if (visitedOperatorType.add(hole.getClass())) {
+          operatorSigsAndFunDecl.append("abstract sig " + ABSTRACT_UOE + " {}\n")
+              .append("one sig " + tilde + ", " + star + ", " + caret + " extends " + ABSTRACT_UOE
+                  + " {}\n");
+          mapToOriginalOperatorNames.put(tilde, "~");
+          mapToOriginalOperatorNames.put(star, "*");
+          mapToOriginalOperatorNames.put(caret, "^");
+        }
+        if (connectedHoles[i] != i) {
+          continue;
+        }
+        Set<String> cands = hole.getCands()
+            .stream().map(Candidate::getValue).collect(Collectors.toSet());
+        operatorSigsAndFunDecl.append(
+            "fun " + UOE_FUN_NAME + i + "(h: " + ABSTRACT_UOE + ", e: univ->univ): univ->univ {\n");
+        if (cands.contains(TRANSPOSE)) {
+          operatorSigsAndFunDecl.append("  h = " + tilde + " => " + TRANSPOSE + "e else\n");
+        }
+        if (cands.contains(REFLEXIVE_TRANSITIVE_CLOSURE)) {
+          operatorSigsAndFunDecl
+              .append("  h = " + star + " => " + REFLEXIVE_TRANSITIVE_CLOSURE + " e else\n");
+        }
+        if (cands.contains(TRANSITIVE_CLOSURE)) {
+          operatorSigsAndFunDecl
+              .append("  h = " + caret + " => " + TRANSITIVE_CLOSURE + " e else none->none\n");
+        }
+        operatorSigsAndFunDecl.append("}\n\n");
       } else if (hole instanceof LO) {
         if (visitedOperatorType.add(hole.getClass())) {
           String and = ABSTRACT_LO + "_And";
@@ -390,6 +429,16 @@ public class ASketch {
           mapToOriginalOperatorNames.put(biImply, "<=>");
           mapToOriginalOperatorNames.put(imply, "=>");
           // Logical operator function declaration must be generated on the fly.
+        }
+      } else if (hole instanceof UOF) {
+        if (visitedOperatorType.add(hole.getClass())) {
+          String origin = ABSTRACT_UOF + "_Origin";
+          String negate = ABSTRACT_UOF + "_Negate";
+          operatorSigsAndFunDecl.append("abstract sig " + ABSTRACT_UOF + " {}\n")
+              .append("one sig " + origin + ", " + negate + " extends " + ABSTRACT_UOF + " {}\n");
+          mapToOriginalOperatorNames.put(origin, "ɛ");
+          mapToOriginalOperatorNames.put(negate, "!");
+          // Unary operator formula function declaration must be generated on the fly.
         }
       } else {
         // TODO(kaiyuan): Implement other types of holes
