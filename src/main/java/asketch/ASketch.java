@@ -523,7 +523,9 @@ public class ASketch {
         closingParentheses.append(")");
       }
       sigDecl.append(" extends ").append(abstractSigName).append("{}\n");
-      funDecl.append(" ").append(NONE).append(closingParentheses.toString()).append("\n");
+      funDecl.append(" ").append(
+          String.join(CROSS_PRODUCT, repeats(NONE, opt.getVarToArity().get(exprHole.getName()))))
+          .append(closingParentheses.toString()).append("\n");
       funDecl.append("}\n\n");
     }
     return sigDecl.toString() + funDecl.toString();

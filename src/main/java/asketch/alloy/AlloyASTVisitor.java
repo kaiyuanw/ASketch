@@ -185,10 +185,10 @@ public class AlloyASTVisitor {
     if (boldPart != null) {
       if (stringIsOr(boldPart, "pred")) {
         List<Browsable> parameters = findSubnodes(node, "parameter");
-        parameters.stream().forEach(
+        parameters.forEach(
             parameter -> visitASTNode(parameter, holes, assignedHoles, relations, nodeToHoleMap));
         List<Relation> newRelations = new ArrayList<>(relations);
-        parameters.stream()
+        parameters
             .forEach(parameter -> newRelations.add(createRelationFromParameter(parameter)));
         Browsable body = findSubnode(node, "body");
         visitASTNode(body, holes, assignedHoles, newRelations, nodeToHoleMap);
@@ -196,12 +196,12 @@ public class AlloyASTVisitor {
       }
       if (stringIsOr(boldPart, "fun")) {
         List<Browsable> parameters = findSubnodes(node, "parameter");
-        parameters.stream().forEach(
+        parameters.forEach(
             parameter -> visitASTNode(parameter, holes, assignedHoles, relations, nodeToHoleMap));
         Browsable returnType = findSubnode(node, "return type");
         visitASTNode(returnType, holes, assignedHoles, relations, nodeToHoleMap);
         List<Relation> newRelations = new ArrayList<>(relations);
-        parameters.stream()
+        parameters
             .forEach(parameter -> newRelations.add(createRelationFromParameter(parameter)));
         Browsable body = findSubnode(node, "body");
         visitASTNode(body, holes, assignedHoles, newRelations, nodeToHoleMap);
@@ -258,10 +258,12 @@ public class AlloyASTVisitor {
         putNodeToHoleMapIfAbsent(node, varName, holes, assignedHoles, relations, nodeToHoleMap);
         return;
       }
-      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "->", "&lt;=&gt;", "=&gt;", "=", "!=", "in",
+      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "&lt;=&gt;", "=&gt;", "=", "!=", "in",
           "!in")) {
         if (boldPart.equals("&amp;")) {
           putNodeToHoleMapIfAbsent(node, "&", holes, assignedHoles, relations, nodeToHoleMap);
+        } else if (boldPart.equals("-&gt;")) {
+          putNodeToHoleMapIfAbsent(node, "->", holes, assignedHoles, relations, nodeToHoleMap);
         } else if (boldPart.equals("&lt;=&gt;")) {
           putNodeToHoleMapIfAbsent(node, "<=>", holes, assignedHoles, relations, nodeToHoleMap);
         } else if (boldPart.equals("=&gt;")) {
@@ -420,7 +422,20 @@ public class AlloyASTVisitor {
             connectedHoles, deque) + op + constructHierarchy(rightOperand, nodeToHoleMap,
             alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
       }
-      if (stringIsOr(boldPart, ".", "->", "=", "!=", "in", "!in")) {
+      if (stringIsOr(boldPart, ".", "-&gt;")) {
+        Browsable leftOperand = browsable.getSubnodes().get(0);
+        Browsable rightOperand = browsable.getSubnodes().get(1);
+        if (nodeToHoleMap.containsKey(browsable)) {
+          deque.offer(browsable);
+          return generateFunOrPredCall(EXPR_FUN_NAME, RESULT_E, nodeToHoleMap.get(browsable),
+              connectedHoles, alloyProgram);
+        }
+        String op = boldPart.equals("-&gt;") ? "->" : boldPart;
+        return "(" + constructHierarchy(leftOperand, nodeToHoleMap, alloyProgram, sigsAndFields,
+            connectedHoles, deque) + op + constructHierarchy(rightOperand,
+            nodeToHoleMap, alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
+      }
+      if (stringIsOr(boldPart, "=", "!=", "in", "!in")) {
         Browsable leftOperand = browsable.getSubnodes().get(0);
         Browsable rightOperand = browsable.getSubnodes().get(1);
         if (nodeToHoleMap.containsKey(browsable)) {
@@ -564,7 +579,7 @@ public class AlloyASTVisitor {
         String op = boldPart.equals("&lt;=&gt;") ? "<=>" : "=>";
         return "(" + getBrowsableString(leftOperand) + op + getBrowsableString(rightOperand) + ")";
       }
-      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "->", "=", "!=", "in", "!in")) {
+      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "=", "!=", "in", "!in")) {
         Browsable leftOperand = browsable.getSubnodes().get(0);
         Browsable rightOperand = browsable.getSubnodes().get(1);
         String space = stringIsOr(boldPart, "in", "!in") ? " " : "";

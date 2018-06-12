@@ -398,7 +398,8 @@ public class AlloyUtil {
     for (int holeId = 0; holeId < holes.size(); holeId++) {
       Hole hole = holes.get(holeId);
       // Skip if the content does not match or the hole is assigned before
-      if (!hole.getContent().equals(nodeValue) || assignedHoles.contains(hole)) {
+      if (!nodeValue.equals("->")
+          && (!hole.getContent().equals(nodeValue) || assignedHoles.contains(hole))) {
         continue;
       }
       // Skip if the hole fall outside of pos
