@@ -24,6 +24,9 @@ public class Compiler {
     parser.program();
 
     Node root = treeBuilder.getRoot();
-    return root.alternatives().stream().map(Candidate::new).collect(Collectors.toList());
+    // Treat special character epsilon as empty string.
+    return root.alternatives().stream().map(s -> s.replaceAll("ɛ", ""))
+        .map(Candidate::new)
+        .collect(Collectors.toList());
   }
 }
