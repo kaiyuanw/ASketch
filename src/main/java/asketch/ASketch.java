@@ -545,7 +545,7 @@ public class ASketch {
     ASketchOpt opt = new ASketchOpt(modelPath, fragmentPath, testPath, solNum);
     // Check if mandatory directories and files exist, and create them if not.
     createDirsIfNotExist();
-    logger.info("Arguments: " + String.join(", ", args));
+    logger.debug("Arguments: " + String.join(", ", args));
     // Read Alloy model with holes as string
     String modelText = TextFileReader.readText(modelPath);
     // Parse Alloy program to detect holes.
