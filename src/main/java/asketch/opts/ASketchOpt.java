@@ -38,13 +38,18 @@ public class ASketchOpt {
   private String testPath;
   private Map<String, List<Candidate>> varToExprs;
   private Map<String, Integer> varToArity;
+  private int scope;
   private int solNum;
+  private int integerBitWidth;
   private A4Options options;
 
-  public ASketchOpt(String modelPath, String fragmentPath, String testPath, int solNum) {
+  public ASketchOpt(String modelPath, String fragmentPath, String testPath, int scope, int solNum) {
     this.modelPath = modelPath;
     this.varToExprs = readVariableToExpressionMapping(fragmentPath);
     this.testPath = testPath;
+    this.scope = scope;
+    // Set default integer bit width to 5.
+    this.integerBitWidth = 5;
     this.solNum = solNum;
     this.options = new A4Options();
   }
@@ -119,6 +124,14 @@ public class ASketchOpt {
 
   public String getTestPath() {
     return testPath;
+  }
+
+  public int getScope() {
+    return scope;
+  }
+
+  public int getIntegerBitWidth() {
+    return integerBitWidth;
   }
 
   public int getSolNum() {

@@ -48,6 +48,9 @@ import static asketch.alloy.util.AlloyUtil.findSubnodes;
 import static asketch.alloy.util.AlloyUtil.putNodeToHoleMapIfAbsent;
 import static asketch.alloy.util.StringUtil.stringIsOr;
 import static asketch.util.StringUtil.afterSubstring;
+import static parser.etc.Names.COMMA;
+import static parser.etc.Names.NEW_LINE;
+import static parser.etc.Names.UNDERSCORE;
 
 import asketch.alloy.cand.Candidate;
 import asketch.alloy.cand.Relation;
@@ -79,6 +82,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import parser.ast.nodes.Call;
+import parser.ast.nodes.CallExpr;
+import parser.ast.nodes.CallFormula;
+import parser.ast.nodes.Function;
+import parser.ast.nodes.ModelUnit;
+import parser.ast.nodes.SigExpr;
+import parser.ast.visitor.PrettyStringVisitor;
 
 public class AlloyASTVisitor {
 
@@ -96,6 +106,55 @@ public class AlloyASTVisitor {
     // Quick union and find.  The indexes of holes with
     // the same scope will have the same value.
     int[] connectedHoles = connectExprHolesWithSameVarName(alloyProgram.getHoles());
+    // TODO(kaiyuanw): The current meta transformation does not support Alloy fact.
+    // We should support Alloy fact in the future.
+    // We leave functions as they are but only modify the parameter declaration or argument call.
+    ModelUnit modelUnit = new ModelUnit(null, module);
+    PrettyStringVisitor psv = new PrettyStringVisitor() {
+      @Override
+      public String visit(SigExpr n, Object arg) {
+        if (n.getName().equals("Int")) {
+          return n.getName();
+        }
+        return n.getName() + "s";
+      }
+
+      private String visitCall(Call n, Object arg) {
+        String argDecl = String.join(COMMA,
+            n.getArguments().stream().map(argument -> argument.accept(this, arg))
+                .collect(Collectors.toList()));
+        String prefix = argDecl.isEmpty() ? "" : ", ";
+        return putInMap(n,
+            "(" + n.getName() + "[" + argDecl + prefix + generateArgInvocationFromRelations(
+                sigsAndFields) + "]" + ")");
+      }
+
+      @Override
+      public String visit(CallExpr n, Object arg) {
+        return visitCall(n, arg);
+      }
+
+      @Override
+      public String visit(CallFormula n, Object arg) {
+        return visitCall(n, arg);
+      }
+
+      @Override
+      public String visit(Function n, Object arg) {
+        String paraDecl = String.join(COMMA,
+            n.getParamList().stream()
+                .map(parameter -> parameter.accept(this, arg))
+                .collect(Collectors.toList()));
+        String prefix = paraDecl.isEmpty() ? "" : ", ";
+        return putInMap(n,
+            "fun " + n.getName().replaceAll("\\$", UNDERSCORE) + "[" + paraDecl + prefix
+                + generateParameterDeclFromRelations(sigsAndFields) + "] : "
+                + n.getReturnType().accept(this, arg) + " "
+                + n.getBody().accept(this, arg));
+      }
+    };
+    modelUnit.getFunDeclList()
+        .forEach(function -> metaModel.append(function.accept(psv, null)).append(NEW_LINE));
     // We only handle holes in predicate for now.
     Browsable predsNode = findSubnode(module, "pred");
     if (predsNode != null) {
@@ -462,7 +521,7 @@ public class AlloyASTVisitor {
             .collect(Collectors.toList()));
         String prefix = originalArgs.isEmpty() ? "" : ", ";
         return "(" + afterSubstring(call.fun.label, SLASH, true) + "["
-            + originalArgs + prefix + generateArgInvocationFromRelations(sigsAndFields) +"])";
+            + originalArgs + prefix + generateArgInvocationFromRelations(sigsAndFields) + "])";
       }
     }
     String normalPart = extractNormal(browsable);

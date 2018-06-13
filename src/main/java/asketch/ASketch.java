@@ -45,7 +45,6 @@ import static asketch.alloy.util.AlloyUtil.repeats;
 import static asketch.etc.Names.NEW_LINE;
 import static asketch.etc.Names.SOLVE_FILE_PATH;
 import static asketch.opts.DefaultOptions.logger;
-import static asketch.opts.DefaultOptions.solvingScope;
 import static asketch.util.FileUtil.createDirsIfNotExist;
 import static asketch.util.StringUtil.afterSubstring;
 import static asketch.util.Util.printASketchUsage;
@@ -216,7 +215,7 @@ public class ASketch {
     // Meta model
     StringBuilder metaModel = new StringBuilder();
     // Construct sig for meta model.
-    metaModel.append(constructSigsAndRun(module));
+    metaModel.append(constructSigsAndRun(module, opt));
     // Construct pred for meta model.
     metaModel.append(constructPreds(alloyProgram, module));
     // Map from the sig names back to the original operators or expressions.
@@ -238,7 +237,7 @@ public class ASketch {
     return mapToOriginalNames;
   }
 
-  private static String constructSigsAndRun(CompModule module) {
+  private static String constructSigsAndRun(CompModule module, ASketchOpt opt) {
     // Construct signature declarations.
     StringBuilder sigDeclAndRun = new StringBuilder();
     Browsable sigParent = findSubnode(module, "sig");
@@ -265,7 +264,8 @@ public class ASketch {
             .append(afterSubstring(sig.toString(), SLASH, true)).append(ext).append(" {}\n\n");
       }
     }
-    sigDeclAndRun.append(SKETCH_COMMAND_NAME).append(": run {} for ").append(solvingScope)
+    sigDeclAndRun.append(SKETCH_COMMAND_NAME).append(": run {} for ").append(opt.getScope())
+        .append(" but ").append(opt.getIntegerBitWidth()).append(" Int")
         .append("\n\n");
     return sigDeclAndRun.toString();
   }
@@ -541,7 +541,7 @@ public class ASketch {
 
   public static void main(String[] args)
       throws HoleParsingException, AlloySyntaxErrorException, TestValuationUnsatisfiableException {
-    if (args.length != 4) {
+    if (args.length != 5) {
       logger.error("Wrong number of arguments: " + args.length);
       printASketchUsage();
       return;
@@ -549,8 +549,9 @@ public class ASketch {
     String modelPath = args[0];
     String fragmentPath = args[1];
     String testPath = args[2];
-    int solNum = Integer.valueOf(args[3]);
-    ASketchOpt opt = new ASketchOpt(modelPath, fragmentPath, testPath, solNum);
+    int scope = Integer.valueOf(args[3]);
+    int solNum = Integer.valueOf(args[4]);
+    ASketchOpt opt = new ASketchOpt(modelPath, fragmentPath, testPath, scope, solNum);
     // Check if mandatory directories and files exist, and create them if not.
     createDirsIfNotExist();
     logger.debug("Arguments: " + String.join(", ", args));

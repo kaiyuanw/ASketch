@@ -6,7 +6,6 @@ import static asketch.alloy.util.AlloyUtil.extractHTML;
 import static asketch.alloy.util.AlloyUtil.findSigsAndFields;
 import static asketch.alloy.util.AlloyUtil.findSubnode;
 import static asketch.etc.Names.TEMP_TEST_PATH;
-import static asketch.opts.DefaultOptions.solvingScope;
 import static asketch.util.StringUtil.afterSubstring;
 import static asketch.util.StringUtil.beforeSubstring;
 
@@ -104,7 +103,8 @@ public class TestTranslator {
                   false), "}", true);
           try {
             Expr valuationExpr = CompUtil.parseOneExpression_fromString(testModule, textValuation);
-            Command runPred = new Command(false, solvingScope, -1, -1, valuationExpr);
+            Command runPred = new Command(false, opt.getScope(), opt.getIntegerBitWidth(), -1,
+                valuationExpr);
             A4Solution valuation = TranslateAlloyToKodkod
                 .execute_command(A4Reporter.NOP, testModule.getAllReachableSigs(), runPred,
                     options);
