@@ -253,8 +253,16 @@ public class ASketch {
         } else {
           mult += " ";
         }
+        String ext = "";
+        if (!sig.isTopLevel()) {
+          if (sig.isSubsig != null) { // S extends P
+            ext = " extends " + afterSubstring(((Sig.PrimSig) sig).parent.label, SLASH, true);
+          } else { // S in P
+            ext = " in " + afterSubstring(((Sig.SubsetSig) sig).parents.get(0).label, SLASH, true);
+          }
+        }
         sigDeclAndRun.append(mult).append("sig ")
-            .append(afterSubstring(sig.toString(), SLASH, true)).append(" {}\n\n");
+            .append(afterSubstring(sig.toString(), SLASH, true)).append(ext).append(" {}\n\n");
       }
     }
     sigDeclAndRun.append(SKETCH_COMMAND_NAME).append(": run {} for ").append(solvingScope)

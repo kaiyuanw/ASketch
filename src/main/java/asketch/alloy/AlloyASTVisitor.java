@@ -63,6 +63,7 @@ import asketch.alloy.fragment.UOF;
 import asketch.alloy.util.AlloyProgram;
 import edu.mit.csail.sdg.ast.Browsable;
 import edu.mit.csail.sdg.ast.ExprBinary;
+import edu.mit.csail.sdg.ast.ExprCall;
 import edu.mit.csail.sdg.ast.ExprList;
 import edu.mit.csail.sdg.ast.ExprUnary;
 import edu.mit.csail.sdg.ast.ExprUnary.Op;
@@ -220,14 +221,14 @@ public class AlloyASTVisitor {
       }
       if (boldPart.contains("AND")) {
         putNodeToHoleMapIfAbsent(node, "&&", holes, assignedHoles, relations, nodeToHoleMap);
-        node.getSubnodes().stream()
+        node.getSubnodes()
             .forEach(
                 subNode -> visitASTNode(subNode, holes, assignedHoles, relations, nodeToHoleMap));
         return;
       }
       if (boldPart.contains("OR")) {
         putNodeToHoleMapIfAbsent(node, "||", holes, assignedHoles, relations, nodeToHoleMap);
-        node.getSubnodes().stream()
+        node.getSubnodes()
             .forEach(
                 subNode -> visitASTNode(subNode, holes, assignedHoles, relations, nodeToHoleMap));
         return;
@@ -235,10 +236,10 @@ public class AlloyASTVisitor {
       if (stringIsOr(boldPart, "no", "lone", "one", "some", "all")) { // Quantifier node
         putNodeToHoleMapIfAbsent(node, boldPart, holes, assignedHoles, relations, nodeToHoleMap);
         List<Browsable> vars = findSubnodes(node, "var");
-        vars.stream()
+        vars
             .forEach(var -> visitASTNode(var, holes, assignedHoles, relations, nodeToHoleMap));
         List<Relation> newRelations = new ArrayList<>(relations);
-        vars.stream().forEach(var -> newRelations.add(createRelationFromVariable(var)));
+        vars.forEach(var -> newRelations.add(createRelationFromVariable(var)));
         Browsable body = findSubnode(node, "body");
         visitASTNode(body, holes, assignedHoles, newRelations, nodeToHoleMap);
         return;
@@ -258,7 +259,8 @@ public class AlloyASTVisitor {
         putNodeToHoleMapIfAbsent(node, varName, holes, assignedHoles, relations, nodeToHoleMap);
         return;
       }
-      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "&lt;=&gt;", "=&gt;", "=", "!=", "in",
+      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "&lt;=&gt;", "=&gt;", "=", "!=",
+          "in",
           "!in")) {
         if (boldPart.equals("&amp;")) {
           putNodeToHoleMapIfAbsent(node, "&", holes, assignedHoles, relations, nodeToHoleMap);
@@ -452,6 +454,16 @@ public class AlloyASTVisitor {
             connectedHoles, deque) + space + boldPart + space + constructHierarchy(rightOperand,
             nodeToHoleMap, alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
       }
+      if (stringIsOr(boldPart, "call")) {
+        ExprCall call = (ExprCall) browsable;
+        String originalArgs = String.join(",", call.args.stream()
+            .map(node -> constructHierarchy(node, nodeToHoleMap, alloyProgram, sigsAndFields,
+                connectedHoles, deque))
+            .collect(Collectors.toList()));
+        String prefix = originalArgs.isEmpty() ? "" : ", ";
+        return "(" + afterSubstring(call.fun.label, SLASH, true) + "["
+            + originalArgs + prefix + generateArgInvocationFromRelations(sigsAndFields) +"])";
+      }
     }
     String normalPart = extractNormal(browsable);
     if (normalPart != null) {
@@ -587,6 +599,13 @@ public class AlloyASTVisitor {
         return "(" + getBrowsableString(leftOperand) + space + op + space + getBrowsableString(
             rightOperand) + ")";
       }
+      if (stringIsOr(boldPart, "call")) {
+        ExprCall call = (ExprCall) browsable;
+        return "(" + afterSubstring(call.fun.label, SLASH, true) + "["
+            + String.join(",", call.args.stream()
+            .map(AlloyASTVisitor::getBrowsableString)
+            .collect(Collectors.toList())) + "])";
+      }
     }
     String normalPart = extractNormal(browsable);
     if (normalPart != null) {
@@ -632,6 +651,21 @@ public class AlloyASTVisitor {
       }
     }
     return newParas.toString();
+  }
+
+  private static String generateArgInvocationFromRelations(List<Relation> relations) {
+    StringBuilder newArgs = new StringBuilder();
+    String prefix = "";
+    for (Relation relation : relations) {
+      String relationName = relation.getValue();
+      if (relation.getTypes().size() == 1 && relationName
+          .equals(relation.getTypes().get(0).getGenType())) {
+        relationName = relationName + "s";
+      }
+      newArgs.append(prefix).append(relationName);
+      prefix = ", ";
+    }
+    return newArgs.toString();
   }
 
   /**
