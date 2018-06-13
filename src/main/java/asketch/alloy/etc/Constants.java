@@ -36,7 +36,6 @@ public class Constants {
   public static final String NEGATE = "!";
 
   // Hole notations
-  public static final String SQ = "SQ";
   public static final String Q = "Q";
   public static final String LO = "LO";
   public static final String CO = "CO";

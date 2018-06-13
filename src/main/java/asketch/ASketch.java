@@ -562,6 +562,7 @@ public class ASketch {
     int scope = Integer.valueOf(args[3]);
     int solNum = Integer.valueOf(args[4]);
     ASketchOpt opt = new ASketchOpt(modelPath, fragmentPath, testPath, scope, solNum);
+    opt.getVarToExprs().forEach((k, v) -> logger.info(k + " := " + v));
     // Check if mandatory directories and files exist, and create them if not.
     createDirsIfNotExist();
     logger.debug("Arguments: " + String.join(", ", args));

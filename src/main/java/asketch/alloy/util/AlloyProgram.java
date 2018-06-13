@@ -5,7 +5,6 @@ import static asketch.alloy.etc.Constants.CO;
 import static asketch.alloy.etc.Constants.E;
 import static asketch.alloy.etc.Constants.LO;
 import static asketch.alloy.etc.Constants.Q;
-import static asketch.alloy.etc.Constants.SQ;
 import static asketch.alloy.etc.Constants.UO;
 import static asketch.alloy.etc.Constants.UOE;
 import static asketch.alloy.etc.Constants.UOF;
@@ -20,7 +19,6 @@ import asketch.alloy.fragment.E;
 import asketch.alloy.fragment.Hole;
 import asketch.alloy.fragment.LO;
 import asketch.alloy.fragment.Q;
-import asketch.alloy.fragment.SQ;
 import asketch.alloy.fragment.UO;
 import asketch.alloy.fragment.UOE;
 import asketch.alloy.fragment.UOF;
@@ -125,8 +123,6 @@ public class AlloyProgram {
     String sketchType = typeAndName[0];
     String sketchName = typeAndName[1];
     switch (sketchType) {
-      case SQ:
-        return new SQ(sketchType, sketchName, lineNumber, begin, end);
       case Q:
         return new Q(sketchType, sketchName, lineNumber, begin, end);
       case LO:
