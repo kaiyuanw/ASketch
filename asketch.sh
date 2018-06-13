@@ -16,12 +16,14 @@ function asketch.run() {
         local model_path="${1}"; shift
         local fragment_path="${1}"; shift
         local test_path="${1}"; shift
+        local scope="${1}"; shift
         local solution_num="${1}"; shift
 
         java -Xmx8g -cp "${JAR_PATH}" asketch.ASketch\
              "${model_path}"\
              "${fragment_path}"\
              "${test_path}"\
+             "${scope}"\
              "${solution_num}"
 }
 
@@ -30,7 +32,7 @@ function asketch.run.model() {
 
         local result_path="${RESULT_DIR}/${obj[model_name]}.txt"
         echo "Run ${obj[model_name]} and searching for ${obj[sol_num]} solutions."
-        asketch.run "${obj[model_path]}" "${obj[fragment_path]}" "${obj[test_path]}" "${obj[sol_num]}" | tee "${result_path}"
+        asketch.run "${obj[model_path]}" "${obj[fragment_path]}" "${obj[test_path]}" "${obj[scope]}" "${obj[sol_num]}" | tee "${result_path}"
 }
 
 function asketch.run.all() {
