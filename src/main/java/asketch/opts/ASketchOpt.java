@@ -95,7 +95,9 @@ public class ASketchOpt {
             varToArity.put(varName, 1);
           }
         } catch (Err err) {
-          // Cannot parse candidates for operator holes.
+          // Cannot parse candidates for operator holes or the candidate value contains local variable.
+          // In the latter case, we assume an arity of 1.  This is really a hack.  Should use type analysis in the future.
+          varToArity.put(varName, 1);
         }
       });
     } catch (Err err) {
