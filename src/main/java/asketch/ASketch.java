@@ -182,7 +182,7 @@ public class ASketch {
           .execute_command(reporter, metaModel.getAllReachableSigs(), runSketch, options);
       if (valuation != null && valuation.satisfiable()) {
         String xml = valuation.toString();
-        Matcher matcher = Pattern.compile("(R.*)(\\d+)=\\{(.*?)\\$\\d*\\}").matcher(xml);
+        Matcher matcher = Pattern.compile("(_R.*_)(\\d+)=\\{(.*?)\\$\\d*\\}").matcher(xml);
         while (matcher.find()) {
           String resSigName = matcher.group(1);
           int holeId = Integer.valueOf(matcher.group(2));
@@ -314,21 +314,23 @@ public class ASketch {
         }
         Set<String> cands = hole.getCands()
             .stream().map(Candidate::getValue).collect(Collectors.toSet());
-        operatorSigsAndFunDecl.append("pred " + CO_FUN_NAME + i +
-            "(h: " + ABSTRACT_CO + ", e1, e2: set univ) {\n");
+        StringBuilder content = new StringBuilder();
         if (cands.contains(EQ)) {
-          operatorSigsAndFunDecl.append("  h = " + eq + " => e1 " + EQ + " e2\n");
+          content.append("  h = " + eq + " => e1 " + EQ + " e2\n");
         }
         if (cands.contains(IN)) {
-          operatorSigsAndFunDecl.append("  h = " + in + " => e1 " + IN + " e2\n");
+          content.append("  h = " + in + " => e1 " + IN + " e2\n");
         }
         if (cands.contains(NEQ)) {
-          operatorSigsAndFunDecl.append("  h = " + neq + " => e1 " + NEQ + " e2\n");
+          content.append("  h = " + neq + " => e1 " + NEQ + " e2\n");
         }
         if (cands.contains(NOT_IN)) {
-          operatorSigsAndFunDecl.append("  h = " + nin + " => e1 " + NOT_IN + " e2\n");
+          content.append("  h = " + nin + " => e1 " + NOT_IN + " e2\n");
         }
-        operatorSigsAndFunDecl.append("}\n\n");
+        operatorSigsAndFunDecl.append("pred " + CO_FUN_NAME + i +
+            "(h: " + ABSTRACT_CO + ", e1, e2: univ) {\n").append(content).append("}\n\n");
+        operatorSigsAndFunDecl.append("pred " + CO_FUN_NAME + i +
+            "(h: " + ABSTRACT_CO + ", e1, e2: univ->univ) {\n").append(content).append("}\n\n");
       } else if (hole instanceof UO) {
         String no = ABSTRACT_UO + "_No";
         String some = ABSTRACT_UO + "_Some";
@@ -348,21 +350,25 @@ public class ASketch {
         }
         Set<String> cands = hole.getCands()
             .stream().map(Candidate::getValue).collect(Collectors.toSet());
-        operatorSigsAndFunDecl
-            .append("pred " + UO_FUN_NAME + i + "(h: " + ABSTRACT_UO + ", e: set univ) {\n");
+        StringBuilder content = new StringBuilder();
         if (cands.contains(NO)) {
-          operatorSigsAndFunDecl.append("  h = " + no + " => " + NO + " e\n");
+          content.append("  h = " + no + " => " + NO + " e\n");
         }
         if (cands.contains(SOME)) {
-          operatorSigsAndFunDecl.append("  h = " + some + " => " + SOME + " e \n");
+          content.append("  h = " + some + " => " + SOME + " e \n");
         }
         if (cands.contains(LONE)) {
-          operatorSigsAndFunDecl.append("  h = " + lone + " => " + LONE + " e\n");
+          content.append("  h = " + lone + " => " + LONE + " e\n");
         }
         if (cands.contains(ONE)) {
-          operatorSigsAndFunDecl.append("  h = " + one + " => " + ONE + " e\n");
+          content.append("  h = " + one + " => " + ONE + " e\n");
         }
-        operatorSigsAndFunDecl.append("}\n\n");
+        operatorSigsAndFunDecl
+            .append("pred " + UO_FUN_NAME + i + "(h: " + ABSTRACT_UO + ", e: univ) {\n")
+            .append(content).append("}\n\n");
+        operatorSigsAndFunDecl
+            .append("pred " + UO_FUN_NAME + i + "(h: " + ABSTRACT_UO + ", e: univ->univ) {\n")
+            .append(content).append("}\n\n");
       } else if (hole instanceof BO) {
         String amp = ABSTRACT_BO + "_Intersect";
         String plus = ABSTRACT_BO + "_Union";
@@ -380,18 +386,22 @@ public class ASketch {
         }
         Set<String> cands = hole.getCands()
             .stream().map(Candidate::getValue).collect(Collectors.toSet());
-        operatorSigsAndFunDecl.append(
-            "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO + ", e1, e2: set univ): set univ {\n");
+        StringBuilder content = new StringBuilder();
         if (cands.contains(INTERSECT)) {
-          operatorSigsAndFunDecl.append("  h = " + amp + " => e1 " + INTERSECT + " e2 else\n");
+          content.append("  h = " + amp + " => e1 " + INTERSECT + " e2 else\n");
         }
         if (cands.contains(UNION)) {
-          operatorSigsAndFunDecl.append("  h = " + plus + " => e1 " + UNION + " e2 else\n");
+          content.append("  h = " + plus + " => e1 " + UNION + " e2 else\n");
         }
         if (cands.contains(DIFF)) {
-          operatorSigsAndFunDecl.append("  h = " + minus + " => e1 " + DIFF + " e2 else none\n");
+          content.append("  h = " + minus + " => e1 " + DIFF + " e2 else none\n");
         }
-        operatorSigsAndFunDecl.append("}\n\n");
+        operatorSigsAndFunDecl.append(
+            "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO + ", e1, e2: univ): set univ {\n")
+            .append(content).append("}\n\n");
+        operatorSigsAndFunDecl.append(
+            "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO + ", e1, e2: univ->univ): set univ {\n")
+            .append(content).append("}\n\n");
       } else if (hole instanceof UOE) {
         String tilde = ABSTRACT_UOE + "_Transpose";
         String star = ABSTRACT_UOE + "_Reflexive_Closure";

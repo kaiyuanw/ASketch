@@ -70,6 +70,7 @@ import edu.mit.csail.sdg.ast.ExprCall;
 import edu.mit.csail.sdg.ast.ExprList;
 import edu.mit.csail.sdg.ast.ExprUnary;
 import edu.mit.csail.sdg.ast.ExprUnary.Op;
+import edu.mit.csail.sdg.ast.Func;
 import edu.mit.csail.sdg.parser.CompModule;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,7 +166,11 @@ public class AlloyASTVisitor {
       }
       // Build meta Alloy model
       for (int i = 0; i < predsNode.getSubnodes().size(); i++) {
-        Browsable pred = predsNode.getSubnodes().get(i);
+        Func pred = (Func) predsNode.getSubnodes().get(i);
+        // Ignore implicit predicate generated from command.
+        if (pred.label.contains("$")) {
+          continue;
+        }
         Deque<Browsable> deque = new LinkedList<>();
         deque.offer(pred);
         while (!deque.isEmpty()) {
@@ -400,6 +405,9 @@ public class AlloyASTVisitor {
         }
         return relationName;
       }
+      if (stringIsOr(boldPart, "iden")) {
+        return boldPart;
+      }
       if (boldPart.contains("AND")) {
         if (nodeToHoleMap.containsKey(browsable)) {
           deque.offer(browsable);
@@ -611,6 +619,9 @@ public class AlloyASTVisitor {
       if (stringIsOr(boldPart, "sig", "field")) { // Does not handle call yet
         String relationName = extractNormal(browsable);
         return afterSubstring(relationName, SLASH, true);
+      }
+      if (stringIsOr(boldPart, "iden")) {
+        return boldPart;
       }
       if (boldPart.contains("AND")) {
         return "(" + String.join(" && ", browsable.getSubnodes().stream()
