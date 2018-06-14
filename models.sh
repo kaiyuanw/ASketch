@@ -33,7 +33,7 @@ declare -g -A arr=(
         [fragment_path]="${FRAGMENT_DIR}/arr.frg"
         [test_path]="${TEST_DIR}/arr.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A bt=(
@@ -42,7 +42,7 @@ declare -g -A bt=(
         [fragment_path]="${FRAGMENT_DIR}/bt.frg"
         [test_path]="${TEST_DIR}/bt.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A cd=(
@@ -51,7 +51,7 @@ declare -g -A cd=(
         [fragment_path]="${FRAGMENT_DIR}/cd.frg"
         [test_path]="${TEST_DIR}/cd.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A contains=(
@@ -60,7 +60,7 @@ declare -g -A contains=(
         [fragment_path]="${FRAGMENT_DIR}/contains.frg"
         [test_path]="${TEST_DIR}/contains.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A ctree=(
@@ -69,7 +69,7 @@ declare -g -A ctree=(
         [fragment_path]="${FRAGMENT_DIR}/ctree.frg"
         [test_path]="${TEST_DIR}/ctree.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A dijkstra=(
@@ -78,7 +78,7 @@ declare -g -A dijkstra=(
         [fragment_path]="${FRAGMENT_DIR}/dijkstra.frg"
         [test_path]="${TEST_DIR}/dijkstra.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A dll=(
@@ -87,7 +87,7 @@ declare -g -A dll=(
         [fragment_path]="${FRAGMENT_DIR}/dll.frg"
         [test_path]="${TEST_DIR}/dll.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A grade=(
@@ -96,7 +96,7 @@ declare -g -A grade=(
         [fragment_path]="${FRAGMENT_DIR}/grade.frg"
         [test_path]="${TEST_DIR}/grade.tst"
         [scope]="4"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A remove=(
@@ -105,7 +105,7 @@ declare -g -A remove=(
         [fragment_path]="${FRAGMENT_DIR}/remove.frg"
         [test_path]="${TEST_DIR}/remove.tst"
         [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
 
 declare -g -A sll=(
@@ -114,14 +114,5 @@ declare -g -A sll=(
         [fragment_path]="${FRAGMENT_DIR}/sll.frg"
         [test_path]="${TEST_DIR}/sll.tst"
         [scope]="3"
-        [sol_num]="10"
-)
-
-declare -g -A t=(
-        [model_name]="t"
-        [model_path]="${MODEL_DIR}/t.als"
-        [fragment_path]="${FRAGMENT_DIR}/t.frg"
-        [test_path]="${TEST_DIR}/t.tst"
-        [scope]="3"
-        [sol_num]="10"
+        [sol_num]="1"
 )
