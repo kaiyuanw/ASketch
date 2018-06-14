@@ -218,6 +218,26 @@ public class TestTranslator {
         skolemToValue.put(matcher.group(1), matcher.group(2));
       }
     }
+    // Remove outer skolems.  For example, if we have some s: S | some s: S' | ...
+    // where S extends S'.  Then the second s becomes s' by default in Alloy.  We only
+    // want to use the inner most variable.
+    Set<String> toRemove = new HashSet<>();
+    for (String oldName : skolemToValue.keySet()) {
+      if (skolemToValue.containsKey(oldName + "'")) {
+        toRemove.add(oldName);
+      }
+    }
+    Map<String, String> skolemToValueFinal = new HashMap<>();
+    for (String oldName : skolemToValue.keySet()) {
+      if (toRemove.contains(oldName)) {
+        continue;
+      }
+      if (oldName.endsWith("'")) {
+        skolemToValueFinal.put(oldName.replaceAll("'+$", ""), skolemToValue.get(oldName));
+      } else {
+        skolemToValueFinal.put(oldName, skolemToValue.get(oldName));
+      }
+    }
     for (String line : valuationInLines) {
       if (!line.startsWith("this")) {
         continue;
@@ -257,7 +277,7 @@ public class TestTranslator {
             relation.getValue() + "s" : relation.getValue())).collect(Collectors.toList()));
     StringBuilder invocations = new StringBuilder();
     for (PredCall predCall : predCalls) {
-      predCall.updateParameters(skolemToValue);
+      predCall.updateParameters(skolemToValueFinal);
       if (predCall.isNegation()) {
         invocations.append("!");
       }

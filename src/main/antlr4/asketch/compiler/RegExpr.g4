@@ -10,5 +10,5 @@ expr     : TERM # TermNode
             | expr '|' expr # OrNode
             ;
 fragment ESC      : '\\' . ;
-TERM     : ([a-zA-Z0-9,.*^~+\-&'":><#![\]=ɛ] | ESC)+ ;
+TERM     : ([a-zA-Z0-9,.*^~+\-&'":><#![\]=ɛ_] | ESC)+ ;
 WS       : [ \t\r\n]+ -> skip ; // skip spaces, tabs, newlines
