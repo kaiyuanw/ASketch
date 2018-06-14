@@ -28,4 +28,11 @@ public class Names {
   public final static String UNDERSCORE = "_";
   public final static String VERTICAL_BAR = "|";
   public final static String COLON_EQUAL = ":=";
+
+  // Command line
+  public final static String MODEL_PATH = "model-path";
+  public final static String FRAGMENT_PATH = "fragment-path";
+  public final static String TEST_PATH = "test-path";
+  public final static String SCOPE = "scope";
+  public final static String SOLUTION_NUM = "sol-num";
 }

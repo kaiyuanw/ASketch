@@ -43,8 +43,13 @@ import static asketch.alloy.util.AlloyUtil.findSigsAndFields;
 import static asketch.alloy.util.AlloyUtil.findSubnode;
 import static asketch.alloy.util.AlloyUtil.generateRelationNameInMetaModel;
 import static asketch.alloy.util.AlloyUtil.repeats;
+import static asketch.etc.Names.FRAGMENT_PATH;
+import static asketch.etc.Names.MODEL_PATH;
 import static asketch.etc.Names.NEW_LINE;
+import static asketch.etc.Names.SCOPE;
+import static asketch.etc.Names.SOLUTION_NUM;
 import static asketch.etc.Names.SOLVE_FILE_PATH;
+import static asketch.etc.Names.TEST_PATH;
 import static asketch.opts.DefaultOptions.logger;
 import static asketch.util.FileUtil.createDirsIfNotExist;
 import static asketch.util.StringUtil.afterSubstring;
@@ -81,6 +86,8 @@ import edu.mit.csail.sdg.parser.CompModule;
 import edu.mit.csail.sdg.translator.A4Options;
 import edu.mit.csail.sdg.translator.A4Solution;
 import edu.mit.csail.sdg.translator.TranslateAlloyToKodkod;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -90,6 +97,14 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import parser.etc.Context;
+import parser.util.FileUtil;
 
 /**
  * This class represents the hierarchical technique for ASketchSolve.
@@ -571,25 +586,13 @@ public class ASketch {
     return sigDecl.toString() + funDecl.toString();
   }
 
-  public static void main(String[] args)
+  public static void sketch(ASketchOpt opt)
       throws HoleParsingException, AlloySyntaxErrorException, TestValuationUnsatisfiableException {
-    if (args.length != 5) {
-      logger.error("Wrong number of arguments: " + args.length);
-      printASketchUsage();
-      return;
-    }
-    String modelPath = args[0];
-    String fragmentPath = args[1];
-    String testPath = args[2];
-    int scope = Integer.valueOf(args[3]);
-    int solNum = Integer.valueOf(args[4]);
-    ASketchOpt opt = new ASketchOpt(modelPath, fragmentPath, testPath, scope, solNum);
     opt.getVarToExprs().forEach((k, v) -> logger.info(k + " := " + v));
     // Check if mandatory directories and files exist, and create them if not.
     createDirsIfNotExist();
-    logger.debug("Arguments: " + String.join(", ", args));
     // Read Alloy model with holes as string
-    String modelText = TextFileReader.readText(modelPath);
+    String modelText = TextFileReader.readText(opt.getModelPath());
     // Parse Alloy program to detect holes.
     AlloyProgram alloyProgram = ASketchParser.parse(modelText);
     // Find relations and variables for each hole.
@@ -600,5 +603,56 @@ public class ASketch {
     alloyProgram.computeHoleColSpan();
     // Generate meta Alloy model and solve it.
     solveMetaModelForConcreteHoleValues(alloyProgram, module, opt);
+  }
+
+  private static ASketchOpt parseCommandLineArgs(String[] args) {
+    Options options = new Options();
+    options.addRequiredOption("m", MODEL_PATH, true, "Path of the model with holes.");
+    options.addRequiredOption("f", FRAGMENT_PATH, true, "Path of the fragment file.");
+    options.addRequiredOption("t", TEST_PATH, true, "Path of the test file.");
+    options.addOption("s", SCOPE, true, "Scope to solve the problem (3 by default).");
+    options.addOption("n", SOLUTION_NUM, true, "Number of solutions to report (1 by default).");
+
+    CommandLineParser parser = new DefaultParser();
+    HelpFormatter formatter = new HelpFormatter();
+
+    try {
+      CommandLine commandLine = parser.parse(options, args);
+      Path modelPath = Paths.get(commandLine.getOptionValue(MODEL_PATH)).toAbsolutePath();
+      if (!FileUtil.fileExists(modelPath.toString())) {
+        Context.logger.error("Cannot find model at " + modelPath);
+        printASketchUsage(formatter, options);
+        return null;
+      }
+      Path fragmentPath = Paths.get(commandLine.getOptionValue(FRAGMENT_PATH)).toAbsolutePath();
+      if (!FileUtil.fileExists(fragmentPath.toString())) {
+        Context.logger.error("Cannot find fragments at " + fragmentPath);
+        printASketchUsage(formatter, options);
+        return null;
+      }
+      Path testPath = Paths.get(commandLine.getOptionValue(TEST_PATH)).toAbsolutePath();
+      if (!FileUtil.fileExists(testPath.toString())) {
+        Context.logger.error("Cannot find tests at " + testPath);
+        printASketchUsage(formatter, options);
+        return null;
+      }
+      int scope = Integer.parseInt(commandLine.getOptionValue(SCOPE, "3"));
+      int solNum = Integer.parseInt(commandLine.getOptionValue(SOLUTION_NUM, "1"));
+      return new ASketchOpt(modelPath.toString(), fragmentPath.toString(), testPath.toString(),
+          scope, solNum);
+    } catch (ParseException e) {
+      Context.logger.error(e.getMessage());
+      printASketchUsage(formatter, options);
+      return null;
+    }
+  }
+
+  public static void main(String[] args)
+      throws HoleParsingException, AlloySyntaxErrorException, TestValuationUnsatisfiableException {
+    ASketchOpt opt = parseCommandLineArgs(args);
+    if (opt == null) {
+      return;
+    }
+    sketch(opt);
   }
 }

@@ -20,11 +20,11 @@ function asketch.run() {
         local solution_num="${1}"; shift
 
         java -Xmx8g -cp "${JAR_PATH}" asketch.ASketch\
-             "${model_path}"\
-             "${fragment_path}"\
-             "${test_path}"\
-             "${scope}"\
-             "${solution_num}"
+             -m "${model_path}"\
+             -f "${fragment_path}"\
+             -t "${test_path}"\
+             -s "${scope}"\
+             -n "${solution_num}"
 }
 
 function asketch.run.model() {
