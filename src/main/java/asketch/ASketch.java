@@ -16,6 +16,7 @@ import static asketch.alloy.etc.Constants.DIFF;
 import static asketch.alloy.etc.Constants.EQ;
 import static asketch.alloy.etc.Constants.EXPR_FUN_NAME;
 import static asketch.alloy.etc.Constants.IN;
+import static asketch.alloy.etc.Constants.INT;
 import static asketch.alloy.etc.Constants.INTERSECT;
 import static asketch.alloy.etc.Constants.LONE;
 import static asketch.alloy.etc.Constants.NEQ;
@@ -212,6 +213,24 @@ public class ASketch {
     // variable name will reuse the same generated construct.
     List<Hole> holes = alloyProgram.getHoles();
     int[] connectedHoles = connectExprHolesWithSameVarName(holes);
+    // If an expression hole must be integer type, then all the holes connected to the expression
+    // hole must also be integer type.
+    Set<Integer> intRootIndexes = new HashSet<>();
+    for (int i = 0; i < holes.size(); i++) {
+      Hole hole = holes.get(i);
+      if (!(hole instanceof E)) {
+        continue;
+      }
+      E exprHole = (E) hole;
+      if (exprHole.isIntType()) {
+        intRootIndexes.add(connectedHoles[i]);
+      }
+    }
+    for (int i = 0; i < holes.size(); i++) {
+      if (intRootIndexes.contains(connectedHoles[i])) {
+        ((E) holes.get(i)).setIntType(true);
+      }
+    }
     // Meta model
     StringBuilder metaModel = new StringBuilder();
     // Construct sig for meta model.
@@ -519,8 +538,10 @@ public class ASketch {
           funDecl.append(", ").append(relationName).append(": ").append(relationType);
         }
       }
+      String columnType = exprHole.isIntType() ? INT : UNIV;
       funDecl.append("]: ").append(
-          String.join(CROSS_PRODUCT, repeats(UNIV, opt.getVarToArity().get(exprHole.getName()))))
+          String.join(CROSS_PRODUCT,
+              repeats(columnType, opt.getVarToArity().get(exprHole.getName()))))
           .append(" {\n");
       // Create sub sigs and function body
       sigDecl.append("one sig ");

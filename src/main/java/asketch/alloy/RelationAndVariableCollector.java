@@ -3,6 +3,7 @@ package asketch.alloy;
 import static asketch.alloy.util.AlloyUtil.compileAlloyModule;
 import static asketch.alloy.util.AlloyUtil.findParametersAndVariables;
 import static asketch.alloy.util.AlloyUtil.findSigsAndFields;
+import static asketch.alloy.util.StringUtil.isInt;
 import static asketch.etc.Names.CHECK_FILE_PATH;
 
 import asketch.alloy.cand.Candidate;
@@ -73,6 +74,9 @@ public class RelationAndVariableCollector {
     Hole hole = alloyProgram.getHoles().get(depth);
     for (Candidate cand : hole.getCands()) {
       hole.setContent(cand.getValue());
+      if (hole instanceof E) {
+        ((E) hole).setIntType(isInt(cand.getValue()));
+      }
       CompModule module = sketchHoles(alloyProgram, depth + 1);
       if (module != null) {
         return module;

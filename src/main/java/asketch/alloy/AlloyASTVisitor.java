@@ -35,6 +35,7 @@ import static asketch.alloy.etc.Constants.SOME;
 import static asketch.alloy.etc.Constants.UOE_FUN_NAME;
 import static asketch.alloy.etc.Constants.UOF_FUN_NAME;
 import static asketch.alloy.etc.Constants.UO_FUN_NAME;
+import static asketch.alloy.util.AlloyUtil.aop;
 import static asketch.alloy.util.AlloyUtil.cardOfRel;
 import static asketch.alloy.util.AlloyUtil.connectExprHolesWithSameVarName;
 import static asketch.alloy.util.AlloyUtil.createRelationFromParameter;
@@ -67,6 +68,7 @@ import asketch.alloy.util.AlloyProgram;
 import edu.mit.csail.sdg.ast.Browsable;
 import edu.mit.csail.sdg.ast.ExprBinary;
 import edu.mit.csail.sdg.ast.ExprCall;
+import edu.mit.csail.sdg.ast.ExprConstant;
 import edu.mit.csail.sdg.ast.ExprList;
 import edu.mit.csail.sdg.ast.ExprUnary;
 import edu.mit.csail.sdg.ast.ExprUnary.Op;
@@ -246,7 +248,20 @@ public class AlloyASTVisitor {
    */
   private static void visitASTNode(Browsable node, List<Hole> holes, Set<Hole> assignedHoles,
       List<Relation> relations, Map<Browsable, Integer> nodeToHoleMap) {
+    // Skip NOOP.
+    if (node instanceof ExprUnary) {
+      ExprUnary unaryExpr = (ExprUnary) node;
+      if (unaryExpr.op == Op.CAST2INT || unaryExpr.op == Op.CAST2SIGINT) {
+        visitASTNode(((ExprUnary) node).sub, holes, assignedHoles, relations, nodeToHoleMap);
+        return;
+      }
+    }
     String boldPart = extractBold(node);
+    // In case the integer maps to a hole.
+    if (node instanceof ExprConstant) {
+      putNodeToHoleMapIfAbsent(node, boldPart, holes, assignedHoles, relations, nodeToHoleMap);
+      return;
+    }
     if (boldPart != null) {
       if (stringIsOr(boldPart, "pred")) {
         List<Browsable> parameters = findSubnodes(node, "parameter");
@@ -324,19 +339,9 @@ public class AlloyASTVisitor {
         return;
       }
       if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "&lt;=&gt;", "=&gt;", "=", "!=",
-          "in",
-          "!in")) {
-        if (boldPart.equals("&amp;")) {
-          putNodeToHoleMapIfAbsent(node, "&", holes, assignedHoles, relations, nodeToHoleMap);
-        } else if (boldPart.equals("-&gt;")) {
-          putNodeToHoleMapIfAbsent(node, "->", holes, assignedHoles, relations, nodeToHoleMap);
-        } else if (boldPart.equals("&lt;=&gt;")) {
-          putNodeToHoleMapIfAbsent(node, "<=>", holes, assignedHoles, relations, nodeToHoleMap);
-        } else if (boldPart.equals("=&gt;")) {
-          putNodeToHoleMapIfAbsent(node, "=>", holes, assignedHoles, relations, nodeToHoleMap);
-        } else {
-          putNodeToHoleMapIfAbsent(node, boldPart, holes, assignedHoles, relations, nodeToHoleMap);
-        }
+          "in", "!in", "&lt;", "&lt;=", "&gt;", "&gt;=")) {
+        putNodeToHoleMapIfAbsent(node, aop(boldPart), holes, assignedHoles, relations,
+            nodeToHoleMap);
         Browsable left = node.getSubnodes().get(0);
         Browsable right = node.getSubnodes().get(1);
         visitASTNode(left, holes, assignedHoles, relations, nodeToHoleMap);
@@ -374,7 +379,23 @@ public class AlloyASTVisitor {
   public static String constructHierarchy(Browsable browsable,
       Map<Browsable, Integer> nodeToHoleMap, AlloyProgram alloyProgram,
       List<Relation> sigsAndFields, int[] connectedHoles, Deque<Browsable> deque) {
+    // Skip NOOP.
+    if (browsable instanceof ExprUnary) {
+      ExprUnary unaryExpr = (ExprUnary) browsable;
+      if (unaryExpr.op == Op.CAST2INT || unaryExpr.op == Op.CAST2SIGINT) {
+        return constructHierarchy(((ExprUnary) browsable).sub, nodeToHoleMap, alloyProgram,
+            sigsAndFields, connectedHoles, deque);
+      }
+    }
     String boldPart = extractBold(browsable);
+    // In case the integer maps to a hole.
+    if (browsable instanceof ExprConstant) {
+      if (nodeToHoleMap.containsKey(browsable)) {
+        return generateFunOrPredCall(EXPR_FUN_NAME, RESULT_E, nodeToHoleMap.get(browsable),
+            connectedHoles, alloyProgram);
+      }
+      return boldPart;
+    }
     if (boldPart != null) {
       // Only handle pred node, ignore fun, fact and assert for now.
       if (stringIsOr(boldPart, "pred")) {
@@ -499,12 +520,11 @@ public class AlloyASTVisitor {
           return generateFunOrPredCall(EXPR_FUN_NAME, RESULT_E, nodeToHoleMap.get(browsable),
               connectedHoles, alloyProgram);
         }
-        String op = boldPart.equals("-&gt;") ? "->" : boldPart;
         return "(" + constructHierarchy(leftOperand, nodeToHoleMap, alloyProgram, sigsAndFields,
-            connectedHoles, deque) + op + constructHierarchy(rightOperand,
+            connectedHoles, deque) + aop(boldPart) + constructHierarchy(rightOperand,
             nodeToHoleMap, alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
       }
-      if (stringIsOr(boldPart, "=", "!=", "in", "!in")) {
+      if (stringIsOr(boldPart, "=", "!=", "in", "!in", "&lt;", "&lt;=", "&gt;", "&gt;=")) {
         Browsable leftOperand = browsable.getSubnodes().get(0);
         Browsable rightOperand = browsable.getSubnodes().get(1);
         if (nodeToHoleMap.containsKey(browsable)) {
@@ -518,8 +538,8 @@ public class AlloyASTVisitor {
         }
         String space = stringIsOr(boldPart, "in", "!in") ? " " : "";
         return "(" + constructHierarchy(leftOperand, nodeToHoleMap, alloyProgram, sigsAndFields,
-            connectedHoles, deque) + space + boldPart + space + constructHierarchy(rightOperand,
-            nodeToHoleMap, alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
+            connectedHoles, deque) + space + aop(boldPart) + space + constructHierarchy(
+            rightOperand, nodeToHoleMap, alloyProgram, sigsAndFields, connectedHoles, deque) + ")";
       }
       if (stringIsOr(boldPart, "call")) {
         ExprCall call = (ExprCall) browsable;
@@ -583,7 +603,17 @@ public class AlloyASTVisitor {
    * the node.  This can be used to construct the predicate directly from AST.
    */
   public static String getBrowsableString(Browsable browsable) {
+    if (browsable instanceof ExprUnary) {
+      ExprUnary unaryExpr = (ExprUnary) browsable;
+      if (unaryExpr.op == Op.CAST2INT || unaryExpr.op == Op.CAST2SIGINT) {
+        return getBrowsableString(((ExprUnary) browsable).sub);
+      }
+    }
     String boldPart = extractBold(browsable);
+    // In case of constant.
+    if (browsable instanceof ExprConstant) {
+      return boldPart;
+    }
     if (boldPart != null) {
       if (stringIsOr(boldPart, "pred")) {
         String predName = afterSubstring(
@@ -661,13 +691,13 @@ public class AlloyASTVisitor {
         String op = boldPart.equals("&lt;=&gt;") ? "<=>" : "=>";
         return "(" + getBrowsableString(leftOperand) + op + getBrowsableString(rightOperand) + ")";
       }
-      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "=", "!=", "in", "!in")) {
+      if (stringIsOr(boldPart, "+", "&amp;", "-", ".", "-&gt;", "=", "!=", "in", "!in", "&lt;",
+          "&lt;=", "&gt;", "&gt;=")) {
         Browsable leftOperand = browsable.getSubnodes().get(0);
         Browsable rightOperand = browsable.getSubnodes().get(1);
         String space = stringIsOr(boldPart, "in", "!in") ? " " : "";
-        String op = boldPart.equals("&amp;") ? "&" : boldPart;
-        return "(" + getBrowsableString(leftOperand) + space + op + space + getBrowsableString(
-            rightOperand) + ")";
+        return "(" + getBrowsableString(leftOperand) + space + aop(boldPart) + space
+            + getBrowsableString(rightOperand) + ")";
       }
       if (stringIsOr(boldPart, "call")) {
         ExprCall call = (ExprCall) browsable;

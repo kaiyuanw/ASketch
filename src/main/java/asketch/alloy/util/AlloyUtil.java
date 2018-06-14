@@ -315,6 +315,32 @@ public class AlloyUtil {
     }
   }
 
+  /**
+   * Find the corresponding arithmetic operator.
+   */
+  public static String aop(String html) {
+    switch (html) {
+      case "&lt;":
+        return "<";
+      case "&lt;=":
+        return "<=";
+      case "&gt;":
+        return ">";
+      case "&gt;=":
+        return ">=";
+      case "&lt;=&gt;":
+        return "<=>";
+      case "=&gt;":
+        return "=>";
+      case "&amp;":
+        return "&";
+      case "-&gt;":
+        return "->";
+      default:
+        return html;
+    }
+  }
+
   public static List<Type> createTypes(String... typeNames) {
     List<Type> types = new ArrayList<>();
     for (String typeName : typeNames) {

@@ -12,6 +12,7 @@ public class Constants {
   public static final String NONE = "none";
   public static final String UNIV = "univ";
   public static final String IDEN = "iden";
+  public static final String INT = "Int";
   public static final String SET = "set";
   public static final String SOME = "some";
   public static final String ONE = "one";
