@@ -413,14 +413,15 @@ public class ASketch {
           content.append("  h = " + plus + " => e1 " + UNION + " e2 else\n");
         }
         if (cands.contains(DIFF)) {
-          content.append("  h = " + minus + " => e1 " + DIFF + " e2 else none\n");
+          content.append("  h = " + minus + " => e1 " + DIFF + " e2 else ");
         }
         operatorSigsAndFunDecl.append(
             "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO + ", e1, e2: univ): set univ {\n")
-            .append(content).append("}\n\n");
+            .append(content).append("none\n}\n\n");
         operatorSigsAndFunDecl.append(
-            "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO + ", e1, e2: univ->univ): set univ {\n")
-            .append(content).append("}\n\n");
+            "fun " + BO_FUN_NAME + i + "(h: " + ABSTRACT_BO
+                + ", e1, e2: univ->univ): set univ->univ {\n")
+            .append(content).append("none->none\n}\n\n");
       } else if (hole instanceof UOE) {
         String tilde = ABSTRACT_UOE + "_Transpose";
         String star = ABSTRACT_UOE + "_Reflexive_Closure";
