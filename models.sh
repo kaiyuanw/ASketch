@@ -17,7 +17,10 @@ MODELS=(
         "bt"
         "cd"
         "contains"
+        "ctree"
+        "grade"
         "dijkstra"
+        "dll"
         "remove"
         "sll"
 )
@@ -60,12 +63,39 @@ declare -g -A contains=(
         [sol_num]="10"
 )
 
+declare -g -A ctree=(
+        [model_name]="ctree"
+        [model_path]="${MODEL_DIR}/ctree.als"
+        [fragment_path]="${FRAGMENT_DIR}/ctree.frg"
+        [test_path]="${TEST_DIR}/ctree.tst"
+        [scope]="3"
+        [sol_num]="10"
+)
+
 declare -g -A dijkstra=(
         [model_name]="dijkstra"
         [model_path]="${MODEL_DIR}/dijkstra.als"
         [fragment_path]="${FRAGMENT_DIR}/dijkstra.frg"
         [test_path]="${TEST_DIR}/dijkstra.tst"
         [scope]="3"
+        [sol_num]="10"
+)
+
+declare -g -A dll=(
+        [model_name]="dll"
+        [model_path]="${MODEL_DIR}/dll.als"
+        [fragment_path]="${FRAGMENT_DIR}/dll.frg"
+        [test_path]="${TEST_DIR}/dll.tst"
+        [scope]="3"
+        [sol_num]="10"
+)
+
+declare -g -A grade=(
+        [model_name]="grade"
+        [model_path]="${MODEL_DIR}/grade.als"
+        [fragment_path]="${FRAGMENT_DIR}/grade.frg"
+        [test_path]="${TEST_DIR}/grade.tst"
+        [scope]="4"
         [sol_num]="10"
 )
 
