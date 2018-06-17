@@ -1,6 +1,4 @@
-module dijkstra
-
-open util/ordering [State] as so
+module deadlock
 
 sig Process {}
 sig Mutex {}
