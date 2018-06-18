@@ -27,7 +27,7 @@ function asketch.run() {
              -n "${solution_num}"
 }
 
-function asketch.run.model() {
+function asketch.run.example() {
         eval $(obj.unpack "${1}"); shift
 
         local result_path="${RESULT_DIR}/${obj[model_name]}.txt"
@@ -37,7 +37,7 @@ function asketch.run.model() {
 
 function asketch.run.all() {
         echo "Running ASketch for all models"
-        model.foreach asketch.run.model MODELS[@]
+        model.foreach asketch.run.example MODELS[@]
 }
 
 function model.foreach() {
@@ -61,8 +61,8 @@ case $1 in
                 asketch.build "$@";;
         --run) shift;
                 asketch.run "$@";;
-        --run-model) shift;
-		asketch.run.model "$(declare -p "${1}")";;
+        --run-example) shift;
+		asketch.run.example "$(declare -p "${1}")";;
         --run-all) shift;
 		asketch.run.all "$@";;
         *)

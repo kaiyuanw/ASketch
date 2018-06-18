@@ -157,30 +157,33 @@ grammar.
 
 ## Alloy Model
 
-We show an [acyclic singly linked
-list](experiments/models/singlyLinkedList.als) Alloy model below:
+We show a [acyclic singly linked list](experiments/models/sll.als)
+Alloy model below:
 ```Alloy
-module SinglyLinkedList
-sig List {
+one sig List {
   header: lone Node
 }
 sig Node {
   link: lone Node
 }
-pred Acyclic (l: List) {
-  no l.header or some n: l.header.*link | no n.link 
+pred Acyclic () {
+  all n: Node | n in List.header.*link => n !in n.^link
 }
 run Acyclic
 ```
 
-The model declares a set of `List` and `Node` atoms.  Each `List` atom
-has zero or one `header` of type `Node`.  Each `Node` atom has zero or
-one following `Node` along `link`.  `header` and `link` are partial
-functions.  The predicate `Acyclic` restricts its parameter `l` to be
-acyclic.  The body of the `Acyclic` predicate states that `l` is
-acyclic if (1) it does not have an `header` or (2) there exists some
-`Node` reachable from `l`'s `header` following zero or more `link`,
-such that the `Node` does not have a subsequent node along the `link`.
+The model declares a singleton set of `List` and a set of `Node`
+atoms.  Each `List` atom has zero or one `header` of type `Node`.
+Each `Node` atom has zero or one following `Node` along `link`.
+`header` and `link` are partial functions.  The predicate `Acyclic`
+restricts the singleton set `List` to be acyclic.  The body of the
+`Acyclic` predicate states that for all `n` of type `Node`, if `n` is
+in the list (reachable from `List.header`), then it implies that `n`
+is not reachable from itself following one or more traversals along
+the `link`.  `all v: D | ...` is universal quantification.  `in` is
+subset relation.  `.` is relational join.  `*` is reflexive transitive
+closure.  `=>` is implication.  `!in` is the negation of subset
+relation.  `^` is transitive closure.
 
 ## Alloy Instance
 

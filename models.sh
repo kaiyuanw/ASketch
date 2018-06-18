@@ -19,7 +19,7 @@ MODELS=(
         "contains"
         "ctree"
         "grade"
-        "dijkstra"
+        "deadlock"
         "dll"
         "remove"
         "sll"
@@ -72,11 +72,11 @@ declare -g -A ctree=(
         [sol_num]="1"
 )
 
-declare -g -A dijkstra=(
-        [model_name]="dijkstra"
-        [model_path]="${MODEL_DIR}/dijkstra.als"
-        [fragment_path]="${FRAGMENT_DIR}/dijkstra.txt"
-        [test_path]="${TEST_DIR}/dijkstra.als"
+declare -g -A deadlock=(
+        [model_name]="deadlock"
+        [model_path]="${MODEL_DIR}/deadlock.als"
+        [fragment_path]="${FRAGMENT_DIR}/deadlock.txt"
+        [test_path]="${TEST_DIR}/deadlock.als"
         [scope]="3"
         [sol_num]="1"
 )
@@ -115,4 +115,13 @@ declare -g -A sll=(
         [test_path]="${TEST_DIR}/sll.als"
         [scope]="3"
         [sol_num]="1"
+)
+
+declare -g -A t=(
+        [model_name]="t"
+        [model_path]="${MODEL_DIR}/t.als"
+        [fragment_path]="${FRAGMENT_DIR}/t.txt"
+        [test_path]="${TEST_DIR}/t.als"
+        [scope]="3"
+        [sol_num]="10"
 )

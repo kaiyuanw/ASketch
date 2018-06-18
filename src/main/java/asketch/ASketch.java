@@ -169,6 +169,9 @@ public class ASketch {
           .writeText(metaModel + "\nfact {\n" + fact.toString() + "}", SOLVE_FILE_PATH, false);
       if (findSolution(reporter, opt.getA4Options(), mapToOriginalNames, solution, mapToSigNames)) {
         foundSolution = true;
+        logger.debug("Primary Vars: " + lastReport[1]);
+        logger.debug("Total Vars: " + lastReport[2]);
+        logger.debug("Clauses: " + lastReport[3]);
         logger.info("Solution " + (i + 1) + " (" + lastReport[4] + "ms): " + String
             .join(", ", Arrays.asList(solution)));
       } else {
