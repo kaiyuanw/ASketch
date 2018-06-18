@@ -114,48 +114,23 @@ details, take a look at `models.sh`.
 
 To sketch all 10 example models, run
 ```Shell
-./mualloy.sh --run-all
+./asketch.sh --run-all
 ```
 
-# Mutation Operators
+# Supported Holes
 
-`MuAlloy` supports the following mutation operators.
+`ASketch` supports the following hole types:
 
-| Operator |                              Description                               |
-|----------|------------------------------------------------------------------------|
-|   MOR    | Multiplicity Operator Replacement.  E.g. `some sig S` => `lone sig S`  |
-|   QOR    | Quantifier Operator Replacement.  E.g. `all s: S` => `some s: S`       |
-|   UOR    | Unary Operator Replacement.  E.g. `some S` => `no S`                   |
-|   BOR    | Binary Operator Replacement.  E.g. `a + b` => `a - b`                  |
-|   LOR    | Formula List Operator Replacement.  E.g. `a && b` => `a \|\| b`        |
-|   UOI    | Unary Operator Insertion.  E.g. `a.b` => `a.*b`                        |
-|   UOD    | Unary Operator Deletion.  E.g. `a.^b` => `a.b`                         |
-|   BOE    | Binary Operator Exchange.  E.g. `a - b` => `b - a`                     |
-|   IEOE   | Imply-Else Operator Exchange.  E.g. `a => b else c` => `a => c else b` |
-
-The full mutations are shown below:
- * MOR: `${x} sig S {...}` to `${y} sig S {...}` where `${x}`, `${y}`
-   ∈ {`ε`, `lone`, `one`, `some`}.  `ε` means empty string and it
-   represents `set` multiplicity in Alloy signature declaration by
-   default.
- * QOR: `${x} s: S | ...` to `${y} s: S | ...` where `${x}`, `${y}` ∈
-   {`all`, `no`, `lone`, `one`, `some`}.
- * UOR: `s: ${x} S` to `s: ${y} S` where `${x}`, `${y}` ∈ {`set`,
-   `lone`, `one`, `some`}; `${x} S` to `${y} S` where `${x}`, `${y}` ∈
-   {`no`, `lone`, `one`, `some`}; `a.${x}b` to `a.${y}b` where `${x}`,
-   `${y}` ∈ {`*`, `^`}.
- * BOR: `a ${x} b` to `a ${y} b` where `${x}`, `${y}` ∈ {`+`, `&`,
-   `-`} or {`=`, `!=`, `in`, `!in`} or {`=>`, `<=>`}.
- * LOR: `a ${x} b ${x} ...` to `a ${y} b ${y} ...` where `${x}`,
-   `${y}` ∈ {`&&`, `||`}.
- * UOI: `a` to `${x}a` where `${x}` ∈ {`*`, `^`, `~`}.
- * UOD: `${x}a` to `a` where `${x}` ∈ {`*`, `^`, `~`} or {`!`}.
- * BOE: `a ${x} b` to `b ${x} a` where `${x}` ∈ {`-`} or {`in`, `!in`,
-   `=>`}.
- * IEOE: `a => b else c` to `a => c else b`.
-
-When the above mutation operators involve both `${x}` and `${y}`, they
-cannot be the same relational operator.
+| Hole Type | Notation | Candidate |
+|----------|----------|---------|
+|   Binary Operator    | \BO\ | `&, +, -` |
+|   Compare Operator    | \CO\ | `=, in, !=, !in` |
+|   Logical Operator    | \LO\ | `||, &&, <=>, =>` |
+|   Quantifier    | \Q\ | `all, no, some, lone, one` |
+|   Unary Operator    | \UO\ | `no, some, lone, one` |
+|   Unary Operator Expression    | \UOE\ | `~, *, ^` |
+|   Unary Operator Formula    | \UOF\ | `!, ɛ`
+|   Expression    | \E\ | any expression |
 
 # Background
 
