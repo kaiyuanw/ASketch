@@ -148,7 +148,7 @@ concatenations (`regex regex`), and choices (`regex "|" regex`).
 `nonSpecial` is any string that contains characters supported by Alloy
 grammar except for `(`, `)` and `|`; to use those, requires escaping
 them as `\(`, `\)` and `\|`.  The
-grammar[https://github.com/kaiyuanw/ASketch/blob/master/src/main/antlr4/asketch/compiler/RegExpr.g4]
+[grammar](https://github.com/kaiyuanw/ASketch/blob/master/src/main/antlr4/asketch/compiler/RegExpr.g4)
 is implemented in ANTLR4.  Note that we use `ɛ` to denote space in the
 grammar.
 
