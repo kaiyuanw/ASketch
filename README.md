@@ -107,12 +107,15 @@ tests.  The example models are listed below:
  * `dll` models a doubly-linked list.
  * `grade` models how teaching assistants grade assignments.
  * `remove` models removing an element from a list.
- * `sll`: Models a singly-linked list.
+ * `sll`: models a singly-linked list.
 
-To sketch a given example model, run ```Shell ./asketch.sh
---run-example ${model} ``` where `${model}` can be one of `[arr, bt,
-cd, contains, ctree, deadlock, dll, grade, remove, sll]`.  By default,
-`ASketch` reads the model, the generator and the AUnit tests from
+To sketch a given example model, run
+```Shell
+./asketch.sh --run-example ${model}
+```
+where `${model}` can be one of `[arr, bt, cd, contains, ctree,
+deadlock, dll, grade, remove, sll]`.  By default, `ASketch` reads the
+model, the generator and the AUnit tests from
 `experiments/models/${model}.als`,
 `experiments/fragments/${model}.txt` and
 `experiments/tests/${model}.als`, respectively.  The solution is
