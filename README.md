@@ -125,7 +125,7 @@ To sketch all 10 example models, run
 |----------|----------|---------|
 |   Binary Operator    | \BO\ | `&, +, -` |
 |   Compare Operator    | \CO\ | `=, in, !=, !in` |
-|   Logical Operator    | \LO\ | `||, &&, <=>, =>` |
+|   Logical Operator    | \LO\ | `\|\|, &&, <=>, =>` |
 |   Quantifier    | \Q\ | `all, no, some, lone, one` |
 |   Unary Operator    | \UO\ | `no, some, lone, one` |
 |   Unary Operator Expression    | \UOE\ | `~, *, ^` |
