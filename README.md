@@ -143,7 +143,7 @@ To sketch all 10 example models, run
 |   Unary Operator Formula    | \UOF\ | `!, ɛ`
 |   Expression    | \E\ | any expression |
 
-For example, users can write \Q,identifier\ to create a quantifier
+For example, users can write `\Q,identifier\` to create a quantifier
 hole, where the `identifier` refers to a candidate fragment generator.
 The generator is provided as a regular expression following the
 grammar below:
