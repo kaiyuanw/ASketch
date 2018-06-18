@@ -31,7 +31,7 @@ function asketch.run.example() {
         eval $(obj.unpack "${1}"); shift
 
         local result_path="${RESULT_DIR}/${obj[model_name]}.txt"
-        echo "Run ${obj[model_name]} and searching for ${obj[sol_num]} solutions."
+        echo "Run ${obj[model_name]} and searching for ${obj[sol_num]} solution(s)."
         asketch.run "${obj[model_path]}" "${obj[fragment_path]}" "${obj[test_path]}" "${obj[scope]}" "${obj[sol_num]}" | tee "${result_path}"
 }
 
