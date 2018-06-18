@@ -132,6 +132,27 @@ To sketch all 10 example models, run
 |   Unary Operator Formula    | \UOF\ | `!, ɛ`
 |   Expression    | \E\ | any expression |
 
+For example, users can write \Q,identifier\ to create a quantifier
+hole, where the `identifier` refers to a candidate fragment generator.
+The generator is provided as a regular expression following the
+grammar below:
+
+```
+regExDecl := identifier ":=" "(|" regex "|)"
+    regex := nonSpecial | regex "?" | "(" regex ")" | regex regex | regex "|" regex
+```
+
+The above grammar follows the popular JSketch framework which includes
+a few regular expression operators: options (`regex "?"`),
+concatenations (`regex regex`), and choices (`regex "|" regex`).
+`nonSpecial` is any string that contains characters supported by Alloy
+grammar except for `(`, `)` and `|`; to use those, requires escaping
+them as `\(`, `\)` and `\|`.  The
+grammar[https://github.com/kaiyuanw/ASketch/blob/master/src/main/antlr4/asketch/compiler/RegExpr.g4]
+is implemented in ANTLR4.  Note that we use `ɛ` to denote space in the
+grammar.
+
+
 # Background
 
 ## Alloy Model
