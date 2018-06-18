@@ -169,7 +169,7 @@ be a subset of all possible fragments in the table.
 
 ## Alloy Model
 
-We show a [acyclic singly linked list](experiments/models/sll.als)
+We show an [acyclic singly linked list](experiments/models/sll.als)
 Alloy model below:
 ```Alloy
 one sig List {
@@ -194,7 +194,7 @@ in the list (reachable from `List.header`), then it implies that `n`
 is not reachable from itself following one or more traversals along
 the `link`.  `all v: D | ...` is universal quantification.  `in` is
 subset relation.  `.` is relational join.  `*` is reflexive transitive
-closure.  `=>` is implication.  `!in` is the negation of subset
+closure.  `=>` is implication.  `!in` is negation of the subset
 relation.  `^` is transitive closure.
 
 ## Alloy Instance
@@ -231,8 +231,12 @@ The test declares a single `List` atom (`List0`) and a single `Node`
  atom (`Node0`).  It restricts the entire `List` set to be {`List0`}
  and `Node` set to be {`Node0`}.  The predicate also states that the
  `header` maps `List0` to `Node0`, and the `link` maps `Node0` to
- `Node0`.  If you run the `test` predicate, you will obtain the
- isomorphic Alloy instance shown [above](#alloy-instance).
+ `Node0`.  Because the `test` predicate represents a cyclic list, we
+ can invoke the negation of the `Acyclic` predicate in the `test`
+ body, which indicates that the `Acyclic` predicate should be
+ unsatisfiable for that instance.  If you run the `test` predicate,
+ you will obtain the isomorphic Alloy instance shown
+ [above](#alloy-instance).
 
 # Limitation
 
