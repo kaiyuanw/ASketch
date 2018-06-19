@@ -644,7 +644,7 @@ public class ASketch {
       return new ASketchOpt(modelPath.toString(), fragmentPath.toString(), testPath.toString(),
           scope, solNum);
     } catch (ParseException e) {
-      Context.logger.error(e.getMessage());
+      logger.error(e.getMessage());
       printASketchUsage(formatter, options);
       return null;
     }
